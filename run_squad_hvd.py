@@ -430,31 +430,31 @@ def convert_examples_to_features(examples, tokenizer, max_seq_length,
         start_position = 0
         end_position = 0
 
-      if example_index < 20:
-        tf.logging.info("*** Example ***")
-        tf.logging.info("unique_id: %s" % (unique_id))
-        tf.logging.info("example_index: %s" % (example_index))
-        tf.logging.info("doc_span_index: %s" % (doc_span_index))
-        tf.logging.info("tokens: %s" % " ".join(
-            [tokenization.printable_text(x) for x in tokens]))
-        tf.logging.info("token_to_orig_map: %s" % " ".join(
-            ["%d:%d" % (x, y) for (x, y) in six.iteritems(token_to_orig_map)]))
-        tf.logging.info("token_is_max_context: %s" % " ".join([
-            "%d:%s" % (x, y) for (x, y) in six.iteritems(token_is_max_context)
-        ]))
-        tf.logging.info("input_ids: %s" % " ".join([str(x) for x in input_ids]))
-        tf.logging.info(
-            "input_mask: %s" % " ".join([str(x) for x in input_mask]))
-        tf.logging.info(
-            "segment_ids: %s" % " ".join([str(x) for x in segment_ids]))
-        if is_training and example.is_impossible:
-          tf.logging.info("impossible example")
-        if is_training and not example.is_impossible:
-          answer_text = " ".join(tokens[start_position:(end_position + 1)])
-          tf.logging.info("start_position: %d" % (start_position))
-          tf.logging.info("end_position: %d" % (end_position))
-          tf.logging.info(
-              "answer: %s" % (tokenization.printable_text(answer_text)))
+      # if example_index < 20:
+      #   tf.logging.info("*** Example ***")
+      #   tf.logging.info("unique_id: %s" % (unique_id))
+      #   tf.logging.info("example_index: %s" % (example_index))
+      #   tf.logging.info("doc_span_index: %s" % (doc_span_index))
+      #   tf.logging.info("tokens: %s" % " ".join(
+      #       [tokenization.printable_text(x) for x in tokens]))
+      #   tf.logging.info("token_to_orig_map: %s" % " ".join(
+      #       ["%d:%d" % (x, y) for (x, y) in six.iteritems(token_to_orig_map)]))
+      #   tf.logging.info("token_is_max_context: %s" % " ".join([
+      #       "%d:%s" % (x, y) for (x, y) in six.iteritems(token_is_max_context)
+      #   ]))
+      #   tf.logging.info("input_ids: %s" % " ".join([str(x) for x in input_ids]))
+      #   tf.logging.info(
+      #       "input_mask: %s" % " ".join([str(x) for x in input_mask]))
+      #   tf.logging.info(
+      #       "segment_ids: %s" % " ".join([str(x) for x in segment_ids]))
+      #   if is_training and example.is_impossible:
+      #     tf.logging.info("impossible example")
+      #   if is_training and not example.is_impossible:
+      #     answer_text = " ".join(tokens[start_position:(end_position + 1)])
+      #     tf.logging.info("start_position: %d" % (start_position))
+      #     tf.logging.info("end_position: %d" % (end_position))
+      #     tf.logging.info(
+      #         "answer: %s" % (tokenization.printable_text(answer_text)))
 
       feature = InputFeatures(
           unique_id=unique_id,
@@ -1298,8 +1298,9 @@ def main(_):
                       FLAGS.do_lower_case, output_prediction_file,
                       output_nbest_file, output_null_log_odds_file)
 
-  # print("Total Training Time: " + str(end_train - start_train) + " seconds.")
-
+     # output from horovod
+    if hvd.rank() > 0:
+      tf.gfile.DeleteRecursively(FLAGS.output_dir)
 
 if __name__ == "__main__":
   flags.mark_flag_as_required("vocab_file")
