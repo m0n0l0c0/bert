@@ -284,7 +284,8 @@ def read_squad_examples(input_file, is_training):
                 doc_tokens[start_position:(end_position + 1)])
             cleaned_answer_text = " ".join(
                 tokenization.whitespace_tokenize(orig_answer_text))
-            if actual_text.find(cleaned_answer_text) == -1:
+            if actual_text.find(cleaned_answer_text) == -1 and \
+              actual_text.lower().find(cleaned_answer_text) == -1:
               tf.logging.warning("Could not find answer: '%s' vs. '%s'",
                                  actual_text, cleaned_answer_text)
               continue
@@ -903,9 +904,15 @@ def write_predictions(all_examples, all_features, all_results, n_best_size,
       all_predictions[example.qas_id] = nbest_json[0]["text"]
     else:
       # predict "" iff the null score - the score of best non-null > threshold
-      score_diff = score_null - best_non_null_entry.start_logit - (
-          best_non_null_entry.end_logit)
+      if best_non_null_entry:
+        score_diff = score_null - best_non_null_entry.start_logit - (
+            best_non_null_entry.end_logit)
+      else:
+        # all n best entries are null, we assign a higher diff than threshold
+        score_diff = FLAGS.null_score_diff_threshold + 1.0
+
       scores_diff_json[example.qas_id] = score_diff
+
       if score_diff > FLAGS.null_score_diff_threshold:
         all_predictions[example.qas_id] = ""
       else:
